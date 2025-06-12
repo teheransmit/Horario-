@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Horario</title>
-  <!-- Fuente moderna -->
+  <!-- Fuentes y librerías -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <style>
     :root {
       --bg-dark: #121212;
@@ -17,124 +19,156 @@
       --border-color: #333;
       --shadow: rgba(0, 0, 0, 0.5);
     }
-    * {
-      box-sizing: border-box;
-      transition: all 0.2s ease;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      background-color: var(--bg-dark);
+      background: var(--bg-dark);
       color: var(--text-light);
       font-family: 'Inter', sans-serif;
       padding: 20px;
     }
     h1 {
-      margin: 0;
       background: linear-gradient(135deg, var(--accent), var(--accent-light));
-      color: white;
+      color: #fff;
       padding: 16px;
       text-align: center;
       border-radius: 8px;
       box-shadow: 0 4px 12px var(--shadow);
-      font-weight: 700;
     }
-    .formulario {
+    .config, .formulario {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      background-color: var(--bg-card);
+      margin-top: 20px;
+      background: var(--bg-card);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px var(--shadow);
-      margin-top: 20px;
     }
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
+    .config {
+      grid-template-columns: 1fr 1fr 1fr auto auto;
+      align-items: end;
+    }
+    .config .form-group.title {
+      grid-column: 1 / -1;
+    }
+    .config label, .formulario label {
       font-weight: 600;
+      display: block;
       color: var(--text-light);
+      margin-bottom: 6px;
     }
-    .form-group input,
-    .form-group select {
+    .config input[type="text"],
+    .formulario input,
+    .formulario select {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       border: none;
       border-radius: 6px;
-      background-color: #2a2a2a;
+      background: #2a2a2a;
       color: var(--text-light);
-      font-size: 0.95em;
     }
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: 2px solid var(--accent-light);
+    .formulario {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     }
-    .formulario button {
+    button {
       padding: 12px;
       background: var(--accent);
       border: none;
       border-radius: 6px;
-      color: white;
+      color: #fff;
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 2px 6px var(--shadow);
     }
-    .formulario button:hover {
+    button:hover {
       background: var(--accent-light);
+    }
+    .contenedor-horarios {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      margin-top: 30px;
+    }
+    .bloque-horario h2 {
+      margin: 0 0 12px 0;
+      color: var(--accent-light);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      background-color: var(--bg-card);
+      background: var(--bg-card);
       border-radius: 8px;
       box-shadow: 0 4px 12px var(--shadow);
     }
-    thead th {
-      background-color: #2a2a2a;
-      color: var(--accent-light);
-      font-weight: 600;
-      padding: 12px;
-      border: 1px solid var(--border-color);
-    }
-    tbody td {
+    th, td {
       border: 1px solid var(--border-color);
       padding: 8px;
       vertical-align: top;
-      height: 50px;
-      background-clip: padding-box;
     }
-    tbody td:first-child {
-      font-weight: 600;
+    th {
+      background: #2a2a2a;
       color: var(--accent-light);
-      background-color: #2a2a2a;
     }
-    tbody tr:nth-child(even) td:not(:first-child) {
-      background-color: #242424;
+    td:first-child {
+      background: #2a2a2a;
+      color: var(--accent-light);
+      font-weight: 600;
+    }
+    tr:nth-child(even) td:not(:first-child) {
+      background: #242424;
     }
     .clase {
       display: block;
-      max-width: 100%;
-      height: auto;
-      color: var(--text-dark);
-      font-weight: 600;
-      font-size: 0.75em;
-      padding: 2px 4px;
-      margin: 2px 0;
-      cursor: move;
-      white-space: pre-line;
+      padding: 4px;
+      margin: 4px 0;
       border-radius: 6px;
       box-shadow: 0 1px 2px var(--shadow);
-      box-sizing: border-box;
       text-align: center;
+      font-size: 0.75em;
+      color: var(--text-dark);
+      cursor: move;
+      white-space: pre-line;
     }
-    .clase:hover {
-      transform: scale(1.03);
-      box-shadow: 0 4px 8px var(--shadow);
+    #modalBackdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+    }
+    #modal {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      box-shadow: 0 4px 12px var(--shadow);
     }
   </style>
 </head>
 <body>
-  <h1>Horario de Clases</h1>
+  <h1>Gestor de Horarios</h1>
+
+  <div class="config">
+    <div class="form-group title">
+      <label for="tituloHorario">Título del horario</label>
+      <input type="text" id="tituloHorario" placeholder="Ej: Horario Semestral">
+    </div>
+    <div class="form-group">
+      <label for="horaMin">Hora mínima</label>
+      <input type="time" id="horaMin" value="06:00">
+    </div>
+    <div class="form-group">
+      <label for="horaMax">Hora máxima</label>
+      <input type="time" id="horaMax" value="22:00">
+    </div>
+    <button id="generarTabla">Generar Nuevo Horario</button>
+    <button id="exportar">Exportar PDF</button>
+  </div>
+
   <div class="formulario">
     <div class="form-group">
       <label for="materia">Materia</label>
@@ -147,6 +181,10 @@
     <div class="form-group">
       <label for="profesor">Profesor</label>
       <input type="text" id="profesor" placeholder="Nombre del profesor">
+    </div>
+    <div class="form-group">
+      <label for="colorMateria">Color Materia</label>
+      <input type="color" id="colorMateria" value="#ff8a80">
     </div>
     <div class="form-group">
       <label for="dia">Día</label>
@@ -167,63 +205,110 @@
       <label for="horaFin">Hora fin</label>
       <select id="horaFin"></select>
     </div>
-    <div class="form-group">
-      <button onclick="agregarClase()">Agregar Clase</button>
+    <button onclick="agregarClase()">Agregar Clase</button>
+  </div>
+
+  <div class="contenedor-horarios" id="contenedorHorarios"></div>
+
+  <!-- Modal edición -->
+  <div id="modalBackdrop">
+    <div id="modal">
+      <h2>Editar Clase</h2>
+      <div class="form-group">
+        <label>Materia
+        <input type="text" id="editMateria">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>NRC
+        <input type="text" id="editNrc">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Profesor
+        <input type="text" id="editProf">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Color
+        <input type="color" id="editColor">
+        </label>
+      </div>
+      <button id="saveEdit">Guardar</button>
     </div>
   </div>
 
-  <table id="horario">
-    <thead>
-      <tr>
-        <th>Hora</th>
-        <th>Lunes</th>
-        <th>Martes</th>
-        <th>Miércoles</th>
-        <th>Jueves</th>
-        <th>Viernes</th>
-        <th>Sábado</th>
-      </tr>
-    </thead>
-    <tbody id="tabla-cuerpo"></tbody>
-  </table>
-
   <script>
-    const coloresMaterias = {};
-    const coloresDisponibles = ['#FF8A80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', '#D7CCC8'];
-    let count = 0;
+    const { jsPDF } = window.jspdf;
+    let scheduleCount = 0, currentScheduleId = null, count = 0;
 
-    function generarHoras() {
+    function generarHoras(min, max) {
       const ops = [];
-      for (let h = 6; h <= 21; h++) {
+      let [hMin] = min.split(':').map(Number);
+      let [hMax] = max.split(':').map(Number);
+      for (let h = hMin; h <= hMax; h++) {
         for (let m = 0; m < 60; m += 10) {
-          ops.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'00')}`);
+          ops.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
         }
       }
       return ops;
     }
 
-    const horas = generarHoras();
-    const horasFilas = horas.filter(h => h.endsWith(':00'));
+    function crearBloqueHorario() {
+      const tituloInput = document.getElementById('tituloHorario').value.trim();
+      const titulo = tituloInput || `Horario ${scheduleCount + 1}`;
+      const min = document.getElementById('horaMin').value;
+      const max = document.getElementById('horaMax').value;
+      const horas = generarHoras(min, max);
+      const filas = horas.filter(h => h.endsWith(':00'));
 
-    const selIni = document.getElementById('horaInicio');
-    const selFin = document.getElementById('horaFin');
-    horas.forEach(h => [selIni, selFin].forEach(sel => {
-      const o = document.createElement('option');
-      o.value = h;
-      o.textContent = h;
-      sel.appendChild(o);
-    }));
+      const id = `sched-${scheduleCount++}`;
+      currentScheduleId = id;
 
-    const body = document.getElementById('tabla-cuerpo');
-    horasFilas.forEach(h => {
-      const row = document.createElement('tr');
-      let html = `<td>${h}</td>`;
-      ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'].forEach(d => {
-        html += `<td data-dia="${d}" data-hora="${h}" ondragover="allowDrop(event)" ondrop="drop(event)"></td>`;
+      const cont = document.getElementById('contenedorHorarios');
+      const bloque = document.createElement('div');
+      bloque.className = 'bloque-horario';
+      bloque.id = id;
+
+      bloque.innerHTML = `
+        <h2>${titulo}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              ${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
+                .map(d => `<th>${d}</th>`)
+                .join('')}
+            </tr>
+          </thead>
+          <tbody id="body-${id}"></tbody>
+        </table>`;
+
+      cont.appendChild(bloque);
+
+      const body = document.getElementById(`body-${id}`);
+      filas.forEach(h => {
+        const row = document.createElement('tr');
+        let html = `<td>${h}</td>`;
+        ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'].forEach(d => {
+          html += `<td data-sched="${id}" data-dia="${d}" data-hora="${h}" ondragover="allowDrop(event)" ondrop="drop(event)"></td>`;
+        });
+        row.innerHTML = html;
+        body.appendChild(row);
       });
-      row.innerHTML = html;
-      body.appendChild(row);
-    });
+
+      poblarSelects(horas);
+    }
+
+    function poblarSelects(horas) {
+      ['horaInicio', 'horaFin'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = '';
+        horas.forEach(h => sel.appendChild(new Option(h, h)));
+      });
+    }
+
+    document.getElementById('generarTabla').onclick = crearBloqueHorario;
 
     function allowDrop(e) { e.preventDefault(); }
     function drag(e) { e.dataTransfer.setData('text/plain', e.target.id); }
@@ -231,64 +316,45 @@
       e.preventDefault();
       const id = e.dataTransfer.getData('text/plain');
       const el = document.getElementById(id);
-      if (e.target.tagName === 'TD') e.target.appendChild(el);
-    }
-
-    function obtenerColorParaMateria(nombre) {
-      if (!coloresMaterias[nombre]) {
-        coloresMaterias[nombre] = coloresDisponibles[Object.keys(coloresMaterias).length % coloresDisponibles.length];
+      if (e.target.tagName === 'TD') {
+        e.target.appendChild(el);
       }
-      return coloresMaterias[nombre];
     }
 
     function agregarClase() {
+      if (!currentScheduleId) return alert('Genera primero un horario');
       const mat = document.getElementById('materia').value.trim();
       const nrc = document.getElementById('nrc').value.trim();
       const prof = document.getElementById('profesor').value.trim();
+      const color = document.getElementById('colorMateria').value;
+
+      if (!mat || !nrc) return alert('Completa Materia y NRC');
+
       const dia = document.getElementById('dia').value;
       const ini = document.getElementById('horaInicio').value;
       const fin = document.getElementById('horaFin').value;
-      if (!mat || !nrc) return alert('Completa Materia y NRC');
+      const start = parseInt(ini.split(':')[0]);
+      const end = parseInt(fin.split(':')[0]);
 
-      const color = obtenerColorParaMateria(mat);
-      const startHour = parseInt(ini.split(':')[0], 10);
-      const endHour = parseInt(fin.split(':')[0], 10);
-
-      horasFilas.forEach(h => {
-        const hHour = parseInt(h.split(':')[0], 10);
-        if (hHour >= startHour && hHour < endHour) {
-          const cell = document.querySelector(`td[data-dia="${dia}"][data-hora="${h}"]`);
-          if (cell) {
+      document.querySelectorAll(`td[data-sched="${currentScheduleId}"]`).forEach(cell => {
+        if (cell.dataset.dia === dia) {
+          const h = parseInt(cell.dataset.hora.split(':')[0]);
+          if (h >= start && h < end) {
             const div = document.createElement('div');
             div.className = 'clase';
-            div.textContent = `${mat}\n${nrc}\n${prof}`;
-            div.draggable = true;
             div.id = 'clase-' + (count++);
+            div.textContent = `${mat}\n${nrc}\n${prof}`;
             div.style.backgroundColor = color;
+            div.draggable = true;
             div.addEventListener('dragstart', drag);
-            div.addEventListener('contextmenu', e => {
-              e.preventDefault();
-              editarClase(div);
-            });
             cell.appendChild(div);
           }
         }
       });
     }
 
-    function editarClase(elemento) {
-      const contenido = elemento.textContent.split('\n');
-      const [materia, nrc, profesor] = contenido;
-      const nuevoMat = prompt('Editar Materia:', materia);
-      const nuevoNrc = prompt('Editar NRC:', nrc);
-      const nuevoProf = prompt('Editar Profesor:', profesor);
-
-      if (nuevoMat && nuevoNrc) {
-        elemento.textContent = `${nuevoMat}\n${nuevoNrc}\n${nuevoProf}`;
-        const nuevoColor = obtenerColorParaMateria(nuevoMat);
-        elemento.style.backgroundColor = nuevoColor;
-      }
-    }
+    // Inicializar con un horario
+    window.onload = crearBloqueHorario;
   </script>
 </body>
 </html>
