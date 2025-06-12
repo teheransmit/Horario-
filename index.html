@@ -6,78 +6,188 @@
   <title>Horario</title>
   <style>
     body {
-      background-color: #1a1a1a;
-      color: #f0f0f0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 10px;
-      margin: 0;
+      background-color: #1e1e1e;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
-
     h1 {
-      background: linear-gradient(90deg, #4facfe, #00f2fe);
-      color: #fff;
-      padding: 6px;
+      background-color: #3390e6;
+      padding: 10px;
       text-align: center;
       border-radius: 6px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-      font-size: 1.4em;
-      margin: 8px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      line-height: 1.2;
     }
-
-    .formulario {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 6px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
     }
-
+    th, td {
+      border: 1px solid #444;
+      padding: 4px;
+      text-align: center;
+      position: relative;
+      height: 40px;
+      max-width: 100px;
+    }
+    th {
+      background-color: #2d2d2d;
+    }
+    .formulario input, .formulario select, .formulario button {
+      padding: 5px;
+      margin: 5px;
+    }
+    .formulario {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
     .form-group {
       display: flex;
       flex-direction: column;
     }
-
     label {
-      margin-bottom: 4px;
       font-size: 0.9em;
+      margin-bottom: 3px;
     }
-
-    input {
-      padding: 6px;
-      border-radius: 4px;
-      border: none;
-      outline: none;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 8px;
-      background-color: #00f2fe;
-      border: none;
-      color: #000;
-      border-radius: 5px;
+    .clase {
+      background-color: #3390e6;
+      color: black;
       font-weight: bold;
-      cursor: pointer;
+      font-size: 0.75em;
+      padding: 2px;
+      margin: 1px;
+      cursor: move;
+      white-space: pre-line;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>HORARIO</h1>
-
+  <h1>Horario</h1>
   <div class="formulario">
     <div class="form-group">
-      <label for="materia1">Materia 1:</label>
-      <input type="text" id="materia1" placeholder="Ej: Cálculo I" />
+      <label for="materia">Materia</label>
+      <input type="text" id="materia" placeholder="Nombre de la materia">
     </div>
     <div class="form-group">
-      <label for="hora1">Hora:</label>
-      <input type="text" id="hora1" placeholder="Ej: 7:00 - 9:00" />
+      <label for="nrc">NRC</label>
+      <input type="text" id="nrc" placeholder="Código NRC">
     </div>
-    <!-- Agrega más campos según lo necesites -->
+    <div class="form-group">
+      <label for="dia">Día</label>
+      <select id="dia">
+        <option>Lunes</option>
+        <option>Martes</option>
+        <option>Miércoles</option>
+        <option>Jueves</option>
+        <option>Viernes</option>
+        <option>Sábado</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="horaInicio">Hora inicio</label>
+      <select id="horaInicio"></select>
+    </div>
+    <div class="form-group">
+      <label for="horaFin">Hora fin</label>
+      <select id="horaFin"></select>
+    </div>
+    <div class="form-group">
+      <label style="visibility:hidden">Agregar</label>
+      <button onclick="agregarClase()">Agregar</button>
+    </div>
   </div>
 
-  <button onclick="alert('¡Horario guardado!')">Guardar Horario</button>
+  <table id="horario">
+    <thead>
+      <tr>
+        <th>Hora</th>
+        <th>Lunes</th>
+        <th>Martes</th>
+        <th>Miércoles</th>
+        <th>Jueves</th>
+        <th>Viernes</th>
+        <th>Sábado</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-cuerpo"></tbody>
+  </table>
+
+  <script>
+    // Genera horas cada 10 minutos
+    function generarHoras() {
+      const ops = [];
+      for (let h = 6; h <= 21; h++) {
+        for (let m = 0; m < 60; m += 10) {
+          ops.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+        }
+      }
+      return ops;
+    }
+    const horas = generarHoras();
+    // Solo filas por horas enteras
+    const horasFilas = horas.filter(h => h.endsWith(':00'));
+
+    // Pobla selects
+    const selIni = document.getElementById('horaInicio');
+    const selFin = document.getElementById('horaFin');
+    horas.forEach(h => [selIni, selFin].forEach(sel => {
+      const o = document.createElement('option'); o.value = h; o.textContent = h;
+      sel.appendChild(o);
+    }));
+
+    // Construye tabla
+    const body = document.getElementById('tabla-cuerpo');
+    horasFilas.forEach(h => {
+      const row = document.createElement('tr');
+      let html = `<td>${h}</td>`;
+      ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'].forEach(d => {
+        html += `<td data-dia="${d}" data-hora="${h}" ondragover="allowDrop(event)" ondrop="drop(event)"></td>`;
+      });
+      row.innerHTML = html;
+      body.appendChild(row);
+    });
+
+    function allowDrop(e) { e.preventDefault(); }
+    function drag(e) { e.dataTransfer.setData('text/plain', e.target.id); }
+    function drop(e) {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      const el = document.getElementById(id);
+      if (e.target.tagName === 'TD') e.target.appendChild(el);
+    }
+
+    let count = 0;
+    function agregarClase() {
+      const mat = document.getElementById('materia').value;
+      const nrc = document.getElementById('nrc').value;
+      const dia = document.getElementById('dia').value;
+      const ini = document.getElementById('horaInicio').value;
+      const fin = document.getElementById('horaFin').value;
+      if (!mat || !nrc) return alert('Completa Materia y NRC');
+
+      const startHour = parseInt(ini.split(':')[0], 10);
+      const endHour = parseInt(fin.split(':')[0], 10);
+
+      horasFilas.forEach(h => {
+        const hHour = parseInt(h.split(':')[0], 10);
+        if (hHour >= startHour && hHour < endHour) {
+          const cell = document.querySelector(`td[data-dia="${dia}"][data-hora="${h}"]`);
+          if (cell) {
+            const div = document.createElement('div');
+            div.className = 'clase';
+            div.textContent = `${mat}
+${nrc}`;
+            div.draggable = true;
+            div.id = 'clase-'+(count++);
+            div.addEventListener('dragstart', drag);
+            cell.appendChild(div);
+          }
+        }
+      });
+    }
+  </script>
 </body>
 </html>
