@@ -4,67 +4,137 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Horario</title>
+  <!-- Fuente moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-dark: #121212;
+      --bg-card: #1f1f1f;
+      --accent: #4f93ff;
+      --accent-light: #6aa7ff;
+      --text-light: #e0e0e0;
+      --text-dark: #212121;
+      --border-color: #333;
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
     body {
-      background-color: #1e1e1e;
-      color: white;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      font-family: 'Inter', sans-serif;
       padding: 20px;
     }
     h1 {
-      background-color: #3390e6;
-      padding: 10px;
+      margin: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      color: white;
+      padding: 16px;
       text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      font-weight: 700;
+    }
+    .formulario {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background-color: var(--bg-card);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      margin-top: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text-light);
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: none;
       border-radius: 6px;
+      background-color: #2a2a2a;
+      color: var(--text-light);
+      font-size: 0.95em;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: 2px solid var(--accent-light);
+    }
+    .formulario button {
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--shadow);
+    }
+    .formulario button:hover {
+      background: var(--accent-light);
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      background-color: var(--bg-card);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
     }
-    th, td {
-      border: 1px solid #444;
-      padding: 4px;
-      text-align: center;
-      position: relative;
-      height: 40px;
-      max-width: 100px;
+    thead th {
+      background-color: #2a2a2a;
+      color: var(--accent-light);
+      font-weight: 600;
+      padding: 12px;
+      border: 1px solid var(--border-color);
     }
-    th {
-      background-color: #2d2d2d;
+    tbody td {
+      border: 1px solid var(--border-color);
+      padding: 8px;
+      vertical-align: top;
+      height: 50px;
+      background-clip: padding-box;
     }
-    .formulario input, .formulario select, .formulario button {
-      padding: 5px;
-      margin: 5px;
+    tbody td:first-child {
+      font-weight: 600;
+      color: var(--accent-light);
+      background-color: #2a2a2a;
     }
-    .formulario {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: flex-start;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      font-size: 0.9em;
-      margin-bottom: 3px;
+    tbody tr:nth-child(even) td:not(:first-child) {
+      background-color: #242424;
     }
     .clase {
-      color: black;
-      font-weight: bold;
+      display: block;
+      max-width: 100%;
+      height: auto;
+      color: var(--text-dark);
+      font-weight: 600;
       font-size: 0.75em;
-      padding: 2px;
-      margin: 1px;
+      padding: 2px 4px;
+      margin: 2px 0;
       cursor: move;
       white-space: pre-line;
-      border-radius: 4px;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px var(--shadow);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .clase:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 8px var(--shadow);
     }
   </style>
 </head>
 <body>
-  <h1>Horario</h1>
+  <h1>Horario de Clases</h1>
   <div class="formulario">
     <div class="form-group">
       <label for="materia">Materia</label>
@@ -98,8 +168,7 @@
       <select id="horaFin"></select>
     </div>
     <div class="form-group">
-      <label style="visibility:hidden">Agregar</label>
-      <button onclick="agregarClase()">Agregar</button>
+      <button onclick="agregarClase()">Agregar Clase</button>
     </div>
   </div>
 
@@ -127,7 +196,7 @@
       const ops = [];
       for (let h = 6; h <= 21; h++) {
         for (let m = 0; m < 60; m += 10) {
-          ops.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+          ops.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'00')}`);
         }
       }
       return ops;
@@ -139,7 +208,9 @@
     const selIni = document.getElementById('horaInicio');
     const selFin = document.getElementById('horaFin');
     horas.forEach(h => [selIni, selFin].forEach(sel => {
-      const o = document.createElement('option'); o.value = h; o.textContent = h;
+      const o = document.createElement('option');
+      o.value = h;
+      o.textContent = h;
       sel.appendChild(o);
     }));
 
@@ -185,7 +256,7 @@
 
       horasFilas.forEach(h => {
         const hHour = parseInt(h.split(':')[0], 10);
-        if (hHour >= startHour && hHour < endHour) {
+        if (hHour >= startHour && hHour < endHour) {
           const cell = document.querySelector(`td[data-dia="${dia}"][data-hora="${h}"]`);
           if (cell) {
             const div = document.createElement('div');
