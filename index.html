@@ -52,7 +52,6 @@
       margin-bottom: 3px;
     }
     .clase {
-      background-color: #3390e6;
       color: black;
       font-weight: bold;
       font-size: 0.75em;
@@ -74,6 +73,10 @@
     <div class="form-group">
       <label for="nrc">NRC</label>
       <input type="text" id="nrc" placeholder="Código NRC">
+    </div>
+    <div class="form-group">
+      <label for="profesor">Profesor</label>
+      <input type="text" id="profesor" placeholder="Nombre del profesor">
     </div>
     <div class="form-group">
       <label for="dia">Día</label>
@@ -116,7 +119,10 @@
   </table>
 
   <script>
-    // Genera horas cada 10 minutos
+    const coloresMaterias = {};
+    const coloresDisponibles = ['#FF8A80', '#FFD180', '#FFFF8D', '#CCFF90', '#A7FFEB', '#80D8FF', '#82B1FF', '#B388FF', '#F8BBD0', '#D7CCC8'];
+    let count = 0;
+
     function generarHoras() {
       const ops = [];
       for (let h = 6; h <= 21; h++) {
@@ -126,11 +132,10 @@
       }
       return ops;
     }
+
     const horas = generarHoras();
-    // Solo filas por horas enteras
     const horasFilas = horas.filter(h => h.endsWith(':00'));
 
-    // Pobla selects
     const selIni = document.getElementById('horaInicio');
     const selFin = document.getElementById('horaFin');
     horas.forEach(h => [selIni, selFin].forEach(sel => {
@@ -138,7 +143,6 @@
       sel.appendChild(o);
     }));
 
-    // Construye tabla
     const body = document.getElementById('tabla-cuerpo');
     horasFilas.forEach(h => {
       const row = document.createElement('tr');
@@ -159,15 +163,23 @@
       if (e.target.tagName === 'TD') e.target.appendChild(el);
     }
 
-    let count = 0;
+    function obtenerColorParaMateria(nombre) {
+      if (!coloresMaterias[nombre]) {
+        coloresMaterias[nombre] = coloresDisponibles[Object.keys(coloresMaterias).length % coloresDisponibles.length];
+      }
+      return coloresMaterias[nombre];
+    }
+
     function agregarClase() {
-      const mat = document.getElementById('materia').value;
-      const nrc = document.getElementById('nrc').value;
+      const mat = document.getElementById('materia').value.trim();
+      const nrc = document.getElementById('nrc').value.trim();
+      const prof = document.getElementById('profesor').value.trim();
       const dia = document.getElementById('dia').value;
       const ini = document.getElementById('horaInicio').value;
       const fin = document.getElementById('horaFin').value;
       if (!mat || !nrc) return alert('Completa Materia y NRC');
 
+      const color = obtenerColorParaMateria(mat);
       const startHour = parseInt(ini.split(':')[0], 10);
       const endHour = parseInt(fin.split(':')[0], 10);
 
@@ -178,15 +190,33 @@
           if (cell) {
             const div = document.createElement('div');
             div.className = 'clase';
-            div.textContent = `${mat}
-${nrc}`;
+            div.textContent = `${mat}\n${nrc}\n${prof}`;
             div.draggable = true;
-            div.id = 'clase-'+(count++);
+            div.id = 'clase-' + (count++);
+            div.style.backgroundColor = color;
             div.addEventListener('dragstart', drag);
+            div.addEventListener('contextmenu', e => {
+              e.preventDefault();
+              editarClase(div);
+            });
             cell.appendChild(div);
           }
         }
       });
+    }
+
+    function editarClase(elemento) {
+      const contenido = elemento.textContent.split('\n');
+      const [materia, nrc, profesor] = contenido;
+      const nuevoMat = prompt('Editar Materia:', materia);
+      const nuevoNrc = prompt('Editar NRC:', nrc);
+      const nuevoProf = prompt('Editar Profesor:', profesor);
+
+      if (nuevoMat && nuevoNrc) {
+        elemento.textContent = `${nuevoMat}\n${nuevoNrc}\n${nuevoProf}`;
+        const nuevoColor = obtenerColorParaMateria(nuevoMat);
+        elemento.style.backgroundColor = nuevoColor;
+      }
     }
   </script>
 </body>
